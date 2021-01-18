@@ -6,7 +6,7 @@ Skills Used:
 - Express, Node
 
 How to use:
-- run `npm i lodash`, `npm i express`, `npm i body-parser`
+- run `npm i`
 
 Functionalities:
 - Add `/about` to get to the about section
