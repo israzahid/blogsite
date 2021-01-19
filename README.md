@@ -3,7 +3,7 @@ A blog site to compose blog entrees or used for journalism!
 
 Skills Used:
 - EJS
-- Express, Node
+- ExpressJS, NodeJS
 
 How to use:
 - run `npm i`
