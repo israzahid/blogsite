@@ -1,6 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
+const mongoose = require("mongoose");
 const _ = require("lodash");
 
 const homeStartingContent = "Welcome to this blog page. There are a couple functionalities here. You can edit the URL to add `/about` to get to the about section, `/contact` to get to the contact section, or add `/compose` to compose a new post! When you compose a couple posts you can 'search' for some of these posts by adding `/post/postName` to the url (with 'postName' being the name of the post).";
@@ -14,13 +15,24 @@ app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static("public"));
 
-let posts = [];
+mongoose.connect("mongodb://localhost:27017/blogDB", {useNewUrlParser: true, useUnifiedTopology: true});
+
+const postSchema = new mongoose.Schema({
+  title: String,
+  body: String
+});
+
+const Post = mongoose.model("Post", postSchema);
 
 app.get("/", function(req, res){
-  res.render("home", {
-    startingContent: homeStartingContent,
-    posts: posts
-  });
+
+  Post.find({}, function(err, posts) {
+    res.render("home", {
+      startingContent: homeStartingContent,
+      posts: posts
+    });
+  })
+
 });
 
 app.get("/about", function(req, res){
@@ -40,29 +52,33 @@ app.get("/compose", function(req, res){
 })
 
 app.post("/compose", function(req, res){
-  const post = {
+
+  const post = new Post ({
     title: req.body.postTitle,
     body: req.body.postBody
-  };
+  });
 
-  posts.push(post);
+  post.save(function(err){
+  
+    if(!err) {
+      res.redirect("/");
+    }
+  
+  });
 
-  res.redirect("/");
 });
 
-app.get("/posts/:postName", function(req, res){
-  const reqTitle = _.lowerCase(req.params.postName);
+app.get("/posts/:postID", function(req, res){
+  const reqPostID = req.params.postID;
 
-  posts.forEach(function(post){
-    const storedTitle = _.lowerCase(post.title);
-
-    if (storedTitle === reqTitle) {
-      res.render("post", {
-        postTitle: post.title,
-        postBody: post.body
-      });
-    }
+  Post.findOne({_id:reqPostID}, function(err, post) {
+    res.render("post", {
+      postTitle: post.title,
+      postBody: post.body
+    });
+    
   });
+
 });
 
 app.listen(3000, function() {
